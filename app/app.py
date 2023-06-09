@@ -1,22 +1,14 @@
 from flask import Flask, Blueprint, jsonify
-from blueprints.lincs import lincs
 from database.database import database
+from blueprints.version import version
 from dotenv import load_dotenv
 
 app = Flask(__name__)
-
+# Load config
 load_dotenv('.env')
 app.config.from_pyfile('config.py')
-# Set the route prefix based on version
-version = Blueprint('/api/v1', __name__, url_prefix="/api/v1")
-
-# Test Route
-@version.route('/')
-def hello():
-	return f'{app.config.get("APP_NAME")} : Hello World!'
 
 # Register routes
-version.register_blueprint(lincs)
 app.register_blueprint(version)
 
 # Main loop
