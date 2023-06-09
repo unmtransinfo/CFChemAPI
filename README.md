@@ -16,4 +16,4 @@
 ## Routes
 
 * `/api/v1` - Hello, World (Index)
-    * `/lincs` - Get all lincs from DB (limit 10)
+    * `/lincs (?limit=10&offset=0)` - Get all lincs from DB (default: limit 10 & offset 0)
