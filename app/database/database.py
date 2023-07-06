@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import current_app
 import psycopg2
+import psycopg2.extras
 class database:
     def connect():
         return psycopg2.connect(
@@ -14,7 +15,7 @@ class database:
     def select(query: str, vars):
         connection = database.connect()
 
-        cursor = connection.cursor()
+        cursor = connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
         try:
             cursor.execute(query, vars)
             res = cursor.fetchall()
