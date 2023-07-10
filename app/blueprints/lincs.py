@@ -1,17 +1,11 @@
 # blueprints/lincs.py
 
-from flask import Blueprint, request
+from flask import Blueprint
 from database.database import database
 lincs = Blueprint('lincs', __name__, url_prefix="/lincs")
 
 
+@lincs.route('/<mol_id>')
 @lincs.route('/')
-def index():
-    limit = request.args.get('limit', type=int) or 10
-    offset = request.args.get('offset', type=int) or 0
-    lincsCollection = database.select("""
-    SELECT * FROM lincs
-    LIMIT %(limit)s
-    OFFSET %(offset)s
-    """, {'limit': limit, 'offset': offset})
-    return lincsCollection
+def index(mol_id = None):
+    return database.index('lincs', mol_id)
