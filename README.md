@@ -13,6 +13,10 @@
 * run `docker-compose up --build`
 * The API should now be accessible from `localhost:8000`
 
+## Documentation
+
+* A full set of Swagger documentation can be found at http://localhost:8000/apidocs
+
 ## Routes
 
 * `/api/v1` - Hello, World (Index)
