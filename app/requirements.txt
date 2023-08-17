@@ -1,6 +1,5 @@
+setuptools
 flask
 python-dotenv
 psycopg2
-apispec[yaml]
-apispec-webframeworks
-marshmallow
+flasgger
