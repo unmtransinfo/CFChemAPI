@@ -30,6 +30,22 @@ class database:
         return res
 
     def index(db, mol_id = None):
+        """Gist detail view.
+        ---
+        get:
+        parameters:
+            - in: mol_id
+                schema: DemoParameter
+        responses:
+            200:
+            content:
+                application/json:
+                schema: DemoSchema
+            400:
+            content:
+                application/json:
+                schema: DemoSchema
+        """
         where = True
         # Only add a where clause if the mol_id is provided
         if mol_id:
