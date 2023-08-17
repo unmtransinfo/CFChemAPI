@@ -29,8 +29,9 @@ class database:
             connection.close()
         return res
 
-    def index(db, mol_id = None):
-        where = True
+    def index(db, mol_id = None, searchable = []):
+        whereColumn = []
+        whereValue = []
         # Only add a where clause if the mol_id is provided
         if mol_id:
             # Because we're using user input that needs to pass AsIs,
@@ -40,15 +41,28 @@ class database:
             except:
                 return abort(400, 'Invalid mol_id provided')
 
-            where = 'mol_id = %d' %(mol_num)
+            whereColumn += 'mol_id = ' 
+            whereValue  += mol_num
+        for search in searchable:
+            if request.args.get(search):
+                whereColumn += '`' + search + '` = '
+                whereValue  += '' + request.args.get(search)
         # Limit the query size
         limit = request.args.get('limit', type=int) or 10
         offset = request.args.get('offset', type=int) or 0
         # Build the query
+        # TODO: ensure where searchables are properly escaped
+        # if whereColumn.count() == 0:
+        #     where = True
+        # else:
+        #     for i in range(whereColumn.count()):
+        #         where += ' ' + whereColumn + whereValue + ' '
+        #         if i > 0:
+        #             where += ' AND '
         lincsCollection = database.select("""
         SELECT * FROM %(database)s
         WHERE %(where)s
         LIMIT %(limit)s
         OFFSET %(offset)s
-        """, {'database': AsIs(db), 'limit': limit, 'offset': offset, 'where':AsIs(where)})
+        """, {'database': AsIs(db), 'limit': limit, 'offset': offset, 'where':where})
         return lincsCollection
