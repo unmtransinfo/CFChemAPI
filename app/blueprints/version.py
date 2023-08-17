@@ -10,6 +10,15 @@ version = Blueprint('/api/v1', __name__, url_prefix="/api/v1")
 # Test Route
 @version.route('/')
 def hello():
+	"""Hello World!
+	Returns a greeting to the user!
+	---
+      responses:
+        200:
+          description: Returns the greeting.
+        500:
+          description: The app is misconfigured, APP_NAME config is missing or broken.
+	"""
 	return f'{current_app.config.get("APP_NAME")} : Hello World!'
 
 # Register routes
