@@ -3,7 +3,7 @@
 from flask import Blueprint
 from database.database import database
 drugcentral = Blueprint('drugcentral', __name__, url_prefix="/drugcentral")
-
+api = Api(app)
 
 @drugcentral.route('/<mol_id>')
 @drugcentral.route('/')
