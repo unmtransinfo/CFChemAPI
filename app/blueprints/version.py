@@ -4,6 +4,7 @@
 from flask import Blueprint, current_app
 from blueprints.lincs import lincs
 from blueprints.drugcentral import drugcentral
+from blueprints.search import search
 # Set the route prefix based on version
 version = Blueprint('/api/v1', __name__, url_prefix="/api/v1")
 
@@ -24,3 +25,4 @@ def hello():
 # Register routes
 version.register_blueprint(lincs)
 version.register_blueprint(drugcentral)
+version.register_blueprint(search)
