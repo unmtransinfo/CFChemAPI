@@ -32,4 +32,9 @@ def index(mol_id = None):
       400:
         description: Malformed request error
     """
-    return database.index('drugcentral', mol_id)
+    # Create an array of searchable fields
+    # These fields can be matched to allow for save 'AsIs' passing through the query
+    searchable = [
+        
+    ]
+    return database.index('drugcentral', mol_id, searchable=searchable)
