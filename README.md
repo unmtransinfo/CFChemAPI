@@ -29,7 +29,7 @@
 * Run `docker compose up`
 
 #### Notes
-* You should create a cron job to back up ./db regularly. You can tar the directory or use mysqldump (https://dev.mysql.com/doc/refman/8.3/en/mysqldump.html) along with the mysql container. (ex: `docker compose exec mysql mysqldump [options] > dump.sql`)
+* You should create a cron job to back up ./db regularly. You can tar the directory (requires stopping containers) or use mysqldump (https://dev.mysql.com/doc/refman/8.3/en/mysqldump.html) along with the mysql container. (ex: `docker compose exec mysql mysqldump [options] > dump.sql`)
 
 ### Recommended (Requires external MySql database):
 
