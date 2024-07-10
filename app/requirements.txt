@@ -2,5 +2,7 @@ setuptools
 flask
 flask-cors
 python-dotenv
-psycopg2
 flasgger
+rdkit
+scaffoldgraph[rdkit]
+pandas
