@@ -5,11 +5,9 @@ Description:
 HierS Python code.
 """
 
-import json
-
 import pandas as pd
 import scaffoldgraph as sg
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request
 from loguru import logger
 
 hiers = Blueprint("hiers", __name__, url_prefix="/hiers")
@@ -60,10 +58,25 @@ def get_scafs(network: HierSTopLevel) -> dict[str, list[str]]:
 
 @hiers.route("/", methods=["GET"])
 def index():
-    """
-    Return scaffolds for a given list of molecules.
+    """Return scaffolds for a given list of molecules.
     Scaffolds are derived using the HierS algorithm:
     https://pubs.acs.org/doi/10.1021/jm049032d.
+    ---
+    parameters:
+      - name: smiles
+        in: query
+        type: string
+        required: true
+      - name: name
+        in: query
+        type: string
+        default: ""
+        required: false
+    responses:
+      200:
+        description: A json object (dict) mapping input SMILES to list of scaffold SMILES
+      400:
+        description: Malformed request error
     """
     mol_smiles = request.args.get("smiles", type=str)
     name = request.args.get("name", type=str)
@@ -73,5 +86,4 @@ def index():
     network = HierSTopLevel.from_dataframe(smiles_df, ring_cutoff=10)
     # get scaffolds, convert to json for use with API / UI
     mol2scafs = get_scafs(network)
-    mol2scafs_json = json.dumps(mol2scafs)
-    return mol2scafs_json
+    return jsonify(mol2scafs, status=200, mimetype="application/json")
