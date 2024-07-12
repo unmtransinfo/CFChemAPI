@@ -7,6 +7,7 @@ HierS Python code.
 
 import pandas as pd
 import scaffoldgraph as sg
+from flasgger import swag_from
 from flask import Blueprint, jsonify, request
 from loguru import logger
 
@@ -42,7 +43,7 @@ def is_valid_scaf(can_smiles: str):
     return True
 
 
-def get_scafs(network: HierSTopLevel) -> dict[str, list[str]]:
+def get_mol2scaf_dict(network: HierSTopLevel) -> dict[str, list[str]]:
     mol_to_scafs = {}
     for mol_node in network.get_molecule_nodes(data=True):
         mol_name = mol_node[0]
@@ -56,34 +57,56 @@ def get_scafs(network: HierSTopLevel) -> dict[str, list[str]]:
     return mol_to_scafs
 
 
-@hiers.route("/", methods=["GET"])
-def index():
-    """Return scaffolds for a given list of molecules.
+@hiers.route("/get_scaffolds", methods=["GET"])
+@swag_from(
+    {
+        "parameters": [
+            {
+                "name": "smiles",
+                "in": "query",
+                "type": "string",
+                "required": True,
+                "description": "input molecule SMILES",
+            },
+            {
+                "name": "name",
+                "in": "query",
+                "type": "string",
+                "default": "",
+                "required": False,
+                "description": "input molecule name",
+            },
+            {
+                "name": "ring_cutoff",
+                "in": "query",
+                "type": "integer",
+                "default": 10,
+                "required": False,
+                "description": "ignore molecules with more than the specified number of rings to avoid extended processing times",
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "A json object with the list of scaffolds (as SMILES)"
+            },
+            400: {"description": "Malformed request error"},
+        },
+    }
+)
+def get_scaffolds():
+    """
+    Return scaffolds for a single input molecule.
     Scaffolds are derived using the HierS algorithm:
     https://pubs.acs.org/doi/10.1021/jm049032d.
-    ---
-    parameters:
-      - name: smiles
-        in: query
-        type: string
-        required: true
-      - name: name
-        in: query
-        type: string
-        default: ""
-        required: false
-    responses:
-      200:
-        description: A json object (dict) mapping input SMILES to list of scaffold SMILES
-      400:
-        description: Malformed request error
     """
     mol_smiles = request.args.get("smiles", type=str)
-    name = request.args.get("name", type=str)
+    name = request.args.get("name", type=str) or ""
+    ring_cutoff = request.args.get("ring_cutoff", type=int) or 10
     # setup network
     smiles_dict = {"Smiles": [mol_smiles], "Name": [name]}
     smiles_df = pd.DataFrame.from_dict(smiles_dict)
-    network = HierSTopLevel.from_dataframe(smiles_df, ring_cutoff=10)
+    network = HierSTopLevel.from_dataframe(smiles_df, ring_cutoff=ring_cutoff)
     # get scaffolds, convert to json for use with API / UI
-    mol2scafs = get_scafs(network)
-    return jsonify(mol2scafs, status=200, mimetype="application/json")
+    mol2scafs = get_mol2scaf_dict(network)
+    scafs = {"scaffolds": list(mol2scafs.values())[0]}
+    return jsonify(scafs)
