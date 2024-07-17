@@ -108,5 +108,9 @@ def get_scaffolds():
     network = HierSTopLevel.from_dataframe(smiles_df, ring_cutoff=ring_cutoff)
     # get scaffolds, convert to json for use with API / UI
     mol2scafs = get_mol2scaf_dict(network)
-    scafs = {"scaffolds": list(mol2scafs.values())[0]}
-    return jsonify(scafs)
+    # indexing [0] bc we only have 1 input molecule
+    result = {
+        "molecule_cansmi": list(mol2scafs.keys())[0],
+        "scaffolds": list(mol2scafs.values())[0],
+    }
+    return jsonify(result)
