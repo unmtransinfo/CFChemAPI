@@ -1,6 +1,7 @@
 # blueprints/version.py
 # This is the master blueprint directory,
 # All new blueprints should be assigned here
+from blueprints.compound_search import compound_search
 from blueprints.hiers import hiers
 from flasgger import swag_from
 from flask import Blueprint, current_app
@@ -31,3 +32,4 @@ def hello():
 
 # Register routes
 version.register_blueprint(hiers)
+version.register_blueprint(compound_search)

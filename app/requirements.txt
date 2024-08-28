@@ -6,3 +6,4 @@ flasgger
 rdkit
 scaffoldgraph[rdkit]
 pandas
+psycopg2

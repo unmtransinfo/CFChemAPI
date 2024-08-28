@@ -1,7 +1,11 @@
 services: 
   web: 
     build:
-     context: app
-     dockerfile: Dockerfile
+      context: app
+      dockerfile: Dockerfile
     ports: 
       - '8000:8000'
+    network_mode: "host" 
+# WARNING: ONLY USE network_mode: "host"  IN DEVELOPMENT!
+# Using here as database is on "localhost" - avoids having to setup networking on local machine
+# Eventually will host database on a proper server

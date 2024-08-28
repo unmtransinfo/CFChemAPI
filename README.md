@@ -1,4 +1,5 @@
-# HierS-API
+# Badapple2-API
+API for Badapple2. Currently in development (do not use for production!)
 
 ## Requirements
 
@@ -15,8 +16,3 @@
 ## Documentation
 
 * A full set of Swagger documentation can be found at http://localhost:8000/apidocs
-
-## Routes
-
-* `/api/v1` - Hello, World (Index)
-    * `/lincs (?limit=10&offset=0)` - Get all lincs from DB (default: limit 10 & offset 0)
