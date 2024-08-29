@@ -9,6 +9,7 @@ import psycopg2
 import psycopg2.extras
 from flask import abort, current_app
 from psycopg2 import sql
+from rdkit import Chem
 
 
 class BadappleDB:
@@ -45,5 +46,17 @@ class BadappleDB:
         query = sql.SQL("SELECT isosmi from compound where cid={cid} LIMIT 1").format(
             cid=sql.Literal(cid)
         )
+        result = BadappleDB.select(query)
+        return result
+
+    def search_scaffold(scafsmi: str):
+        # first canonicalize SMILES
+        try:
+            scafsmi = Chem.MolToSmiles(Chem.MolFromSmiles(scafsmi))
+        except Exception:
+            return abort(400, "Invalid SMILES provided")
+        query = sql.SQL(
+            "SELECT scafsmi,pscore,prank,in_drug from scaffold where scafsmi={scafsmi} LIMIT 1"
+        ).format(scafsmi=sql.Literal(scafsmi))
         result = BadappleDB.select(query)
         return result

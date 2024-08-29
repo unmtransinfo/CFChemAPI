@@ -3,6 +3,7 @@
 # All new blueprints should be assigned here
 from blueprints.compound_search import compound_search
 from blueprints.hiers import hiers
+from blueprints.scaffold_search import scaffold_search
 from flasgger import swag_from
 from flask import Blueprint, current_app
 
@@ -33,3 +34,4 @@ def hello():
 # Register routes
 version.register_blueprint(hiers)
 version.register_blueprint(compound_search)
+version.register_blueprint(scaffold_search)
