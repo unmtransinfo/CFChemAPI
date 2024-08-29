@@ -7,7 +7,8 @@ Blueprint for searching Badapple DB for data from compound inputs.
 
 from database.database import BadappleDB
 from flasgger import swag_from
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, abort, jsonify, request
+from utils.scaffold_utils import get_scaffolds_single_mol
 
 compound_search = Blueprint("compound_search", __name__, url_prefix="/compound_search")
 
@@ -38,4 +39,43 @@ def get_isosmi():
     """
     cid = request.args.get("CID", type=int)
     result = BadappleDB.index_compound(cid)
+    return jsonify(result)
+
+
+@compound_search.route("/get_associated_scaffolds", methods=["GET"])
+@swag_from(
+    {
+        "parameters": [
+            {
+                "name": "SMILES",
+                "in": "query",
+                "type": "string",
+                "required": True,
+                "description": "Compound SMILES",
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "A json object with all associated scaffolds and their information. Note that if a scaffold is not present in the DB it will have an empty list instead of info."
+            },
+            400: {"description": "Malformed request error"},
+        },
+    }
+)
+def get_associated_scaffolds():
+    """
+    Return associated scaffolds + info on each.
+    """
+    smiles = request.args.get("SMILES", type=str)
+    scaf_res = get_scaffolds_single_mol(smiles, name="", ring_cutoff=10)
+    if scaf_res == {}:
+        return abort(400, "Invalid SMILES provided")
+
+    scaffolds = scaf_res["scaffolds"]
+    result = {}
+    result["molecule_cansmi"] = scaf_res["molecule_cansmi"]
+    result["scaffolds"] = {}
+    for scafsmi in scaffolds:
+        scaf_info = BadappleDB.search_scaffold(scafsmi)
+        result["scaffolds"][scafsmi] = scaf_info
     return jsonify(result)

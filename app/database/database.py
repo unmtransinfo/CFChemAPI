@@ -9,7 +9,7 @@ import psycopg2
 import psycopg2.extras
 from flask import abort, current_app
 from psycopg2 import sql
-from rdkit import Chem
+from utils.smiles_utils import get_canon_smiles
 
 
 class BadappleDB:
@@ -51,9 +51,8 @@ class BadappleDB:
 
     def search_scaffold(scafsmi: str):
         # first canonicalize SMILES
-        try:
-            scafsmi = Chem.MolToSmiles(Chem.MolFromSmiles(scafsmi))
-        except Exception:
+        scafsmi = get_canon_smiles(scafsmi)
+        if scafsmi is None:
             return abort(400, "Invalid SMILES provided")
         query = sql.SQL(
             "SELECT scafsmi,pscore,prank,in_drug from scaffold where scafsmi={scafsmi} LIMIT 1"
