@@ -74,8 +74,8 @@ def get_associated_scaffolds():
     scaffolds = scaf_res["scaffolds"]
     result = {}
     result["molecule_cansmi"] = scaf_res["molecule_cansmi"]
-    result["scaffolds"] = {}
+    result["scaffolds"] = []
     for scafsmi in scaffolds:
         scaf_info = BadappleDB.search_scaffold(scafsmi)
-        result["scaffolds"][scafsmi] = scaf_info
+        result["scaffolds"].append(scaf_info[0])
     return jsonify(result)
