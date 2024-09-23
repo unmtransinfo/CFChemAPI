@@ -77,5 +77,10 @@ def get_associated_scaffolds():
     result["scaffolds"] = []
     for scafsmi in scaffolds:
         scaf_info = BadappleDB.search_scaffold(scafsmi)
-        result["scaffolds"].append(scaf_info[0])
+        if len(scaf_info) < 1:
+            scaf_info = {'scafsmi': scafsmi, 'pscore': None, 'prank': None, 'in_drug': None, "in_db": False}
+        else:
+            scaf_info = dict(scaf_info[0])
+            scaf_info["in_db"] = True
+        result["scaffolds"].append(scaf_info)
     return jsonify(result)
