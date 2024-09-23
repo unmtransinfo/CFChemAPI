@@ -17,7 +17,7 @@ hiers = Blueprint("hiers", __name__, url_prefix="/hiers")
     {
         "parameters": [
             {
-                "name": "smiles",
+                "name": "SMILES",
                 "in": "query",
                 "type": "string",
                 "required": True,
@@ -54,7 +54,7 @@ def get_scaffolds():
     Scaffolds are derived using the HierS algorithm:
     https://pubs.acs.org/doi/10.1021/jm049032d.
     """
-    mol_smiles = request.args.get("smiles", type=str)
+    mol_smiles = request.args.get("SMILES", type=str)
     name = request.args.get("name", type=str) or ""
     ring_cutoff = request.args.get("ring_cutoff", type=int) or 10
     result = get_scaffolds_single_mol(mol_smiles, name, ring_cutoff)
