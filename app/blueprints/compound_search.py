@@ -103,3 +103,65 @@ def get_associated_scaffolds():
         result["scaffolds_info"].append(scaffold_info)
 
     return jsonify(result)
+
+
+@compound_search.route("/get_high_scores", methods=["GET"])
+@swag_from(
+    {
+        "parameters": [
+            {
+                "name": "SMILES",
+                "in": "query",
+                "type": "string",
+                "required": True,
+                "description": "List of compound SMILES, comma-separated. Invalid SMILES are ignored.",
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "A json object with all compounds and their highest-scoring scaffold + its pscore. If the compound has no scaffolds in the DB a score of 'None' is given."
+            },
+            400: {"description": "Malformed request error"},
+        },
+    }
+)
+def get_high_scores():
+    """
+    Return highest-scoring scaffold for each molecule.
+    """
+    smiles_list = request.args.get("SMILES", type=str)
+    if not smiles_list:
+        return abort(400, "No SMILES provided")
+
+    smiles_list = smiles_list.split(",")
+    result = []
+
+    for smiles in smiles_list:
+        # original code uses ring_cutoff=30, hence why using it here
+        scaf_res = get_scaffolds_single_mol(smiles, name="", ring_cutoff=30)
+        if scaf_res == {}:
+            # ignore invalid SMILES
+            continue
+
+        scaffolds = scaf_res["scaffolds"]
+
+        # get highest-scoring scaf
+        max_scaf_score = -1
+        max_scaf = ""
+        for scafsmi in scaffolds:
+            scaf_info = BadappleDB.search_scaffold(scafsmi)
+            if len(scaf_info) >= 1:  # if scaffold in DB
+                scaf_info = dict(scaf_info[0])
+                scaf_pscore = scaf_info["pscore"]
+                if scaf_pscore > max_scaf_score:
+                    max_scaf_score = scaf_pscore
+                    max_scaf = scafsmi
+
+        if max_scaf_score == -1:
+            max_scaf_score = None
+            max_scaf = None
+        result.append(
+            {"molecule_smiles": smiles, "scaf": max_scaf, "pscore": max_scaf_score}
+        )
+
+    return jsonify(result)
