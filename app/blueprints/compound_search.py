@@ -51,12 +51,12 @@ def get_isosmi():
                 "in": "query",
                 "type": "string",
                 "required": True,
-                "description": "Compound SMILES",
+                "description": "List of compound SMILES, comma-separated. Invalid SMILES are ignored.",
             },
         ],
         "responses": {
             200: {
-                "description": "A json object with all associated scaffolds and their information. Note that if a scaffold is not present in the DB it will have an empty list instead of info."
+                "description": "A json object with all compounds and their associated scaffolds + their information. Note that if a scaffold is not present in the DB it will have an empty list instead of info."
             },
             400: {"description": "Malformed request error"},
         },
@@ -66,21 +66,40 @@ def get_associated_scaffolds():
     """
     Return associated scaffolds + info on each.
     """
-    smiles = request.args.get("SMILES", type=str)
-    scaf_res = get_scaffolds_single_mol(smiles, name="", ring_cutoff=10)
-    if scaf_res == {}:
-        return abort(400, "Invalid SMILES provided")
+    smiles_list = request.args.get("SMILES", type=str)
+    if not smiles_list:
+        return abort(400, "No SMILES provided")
 
-    scaffolds = scaf_res["scaffolds"]
-    result = {}
-    result["molecule_cansmi"] = scaf_res["molecule_cansmi"]
-    result["scaffolds"] = []
-    for scafsmi in scaffolds:
-        scaf_info = BadappleDB.search_scaffold(scafsmi)
-        if len(scaf_info) < 1:
-            scaf_info = {'scafsmi': scafsmi, 'pscore': None, 'prank': None, 'in_drug': None, "in_db": False}
-        else:
-            scaf_info = dict(scaf_info[0])
-            scaf_info["in_db"] = True
-        result["scaffolds"].append(scaf_info)
+    smiles_list = smiles_list.split(",")
+    result = {"scaffolds_info": []}
+
+    for smiles in smiles_list:
+        # original code uses ring_cutoff=30, hence why using it here
+        scaf_res = get_scaffolds_single_mol(smiles, name="", ring_cutoff=30)
+        if scaf_res == {}:
+            # ignore invalid SMILES
+            continue
+
+        scaffolds = scaf_res["scaffolds"]
+        scaffold_info = {
+            "molecule_smiles": smiles,
+            "scaffolds": [],
+        }
+        for scafsmi in scaffolds:
+            scaf_info = BadappleDB.search_scaffold(scafsmi)
+            if len(scaf_info) < 1:
+                scaf_info = {
+                    "scafsmi": scafsmi,
+                    "pscore": None,
+                    "prank": None,
+                    "in_drug": None,
+                    "in_db": False,
+                }
+            else:
+                scaf_info = dict(scaf_info[0])
+                scaf_info["in_db"] = True
+            scaffold_info["scaffolds"].append(scaf_info)
+
+        result["scaffolds_info"].append(scaffold_info)
+
     return jsonify(result)
