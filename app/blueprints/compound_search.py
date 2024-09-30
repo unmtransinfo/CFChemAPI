@@ -13,33 +13,47 @@ from utils.scaffold_utils import get_scaffolds_single_mol
 compound_search = Blueprint("compound_search", __name__, url_prefix="/compound_search")
 
 
-@compound_search.route("/get_isosmi", methods=["GET"])
-@swag_from(
-    {
-        "parameters": [
-            {
-                "name": "CID",
-                "in": "query",
-                "type": "integer",
-                "required": True,
-                "description": "PubChem CID (Compound ID)",
-            },
-        ],
-        "responses": {
-            200: {
-                "description": "A json object with the Isomeric SMILES of the CID, or nothing if CID not in DB"
-            },
-            400: {"description": "Malformed request error"},
-        },
-    }
-)
-def get_isosmi():
+def _get_smiles_list(request):
+    smiles_list = request.args.get("SMILES", type=str)
+    if not smiles_list:
+        return abort(400, "No SMILES provided")
+    smiles_list = smiles_list.split(",")
+    return smiles_list
+
+
+def _get_associated_scaffolds_from_list(smiles_list: list[str]) -> dict[str, list]:
     """
-    Return Isomeric SMILES of a given CID.
+    Helper function, returns a dictionary mapping SMILES to associated scaffolds + info.
     """
-    cid = request.args.get("CID", type=int)
-    result = BadappleDB.index_compound(cid)
-    return jsonify(result)
+    result = {}
+
+    for smiles in smiles_list:
+        # original code uses ring_cutoff=30, hence why using it here
+        scaf_res = get_scaffolds_single_mol(smiles, name="", ring_cutoff=30)
+        if scaf_res == {}:
+            # ignore invalid SMILES
+            continue
+
+        scaffolds = scaf_res["scaffolds"]
+        scaffold_info_list = []
+        for scafsmi in scaffolds:
+            scaf_info = BadappleDB.search_scaffold(scafsmi)
+            if len(scaf_info) < 1:
+                scaf_info = {
+                    "scafsmi": scafsmi,
+                    "id": None,
+                    "pscore": None,
+                    "prank": None,
+                    "in_drug": None,
+                    "in_db": False,
+                }
+            else:
+                scaf_info = dict(scaf_info[0])
+                scaf_info["in_db"] = True
+            scaffold_info_list.append(scaf_info)
+
+        result[smiles] = scaffold_info_list
+    return result
 
 
 @compound_search.route("/get_associated_scaffolds", methods=["GET"])
@@ -66,42 +80,8 @@ def get_associated_scaffolds():
     """
     Return associated scaffolds + info on each.
     """
-    smiles_list = request.args.get("SMILES", type=str)
-    if not smiles_list:
-        return abort(400, "No SMILES provided")
-
-    smiles_list = smiles_list.split(",")
-    result = {"scaffolds_info": []}
-
-    for smiles in smiles_list:
-        # original code uses ring_cutoff=30, hence why using it here
-        scaf_res = get_scaffolds_single_mol(smiles, name="", ring_cutoff=30)
-        if scaf_res == {}:
-            # ignore invalid SMILES
-            continue
-
-        scaffolds = scaf_res["scaffolds"]
-        scaffold_info = {
-            "molecule_smiles": smiles,
-            "scaffolds": [],
-        }
-        for scafsmi in scaffolds:
-            scaf_info = BadappleDB.search_scaffold(scafsmi)
-            if len(scaf_info) < 1:
-                scaf_info = {
-                    "scafsmi": scafsmi,
-                    "pscore": None,
-                    "prank": None,
-                    "in_drug": None,
-                    "in_db": False,
-                }
-            else:
-                scaf_info = dict(scaf_info[0])
-                scaf_info["in_db"] = True
-            scaffold_info["scaffolds"].append(scaf_info)
-
-        result["scaffolds_info"].append(scaffold_info)
-
+    smiles_list = _get_smiles_list(request)
+    result = _get_associated_scaffolds_from_list(smiles_list)
     return jsonify(result)
 
 
@@ -129,23 +109,11 @@ def get_high_scores():
     """
     Return highest-scoring scaffold for each molecule.
     """
-    smiles_list = request.args.get("SMILES", type=str)
-    if not smiles_list:
-        return abort(400, "No SMILES provided")
-
-    smiles_list = smiles_list.split(",")
+    smiles_list = _get_smiles_list(request)
+    associated_scaffolds = _get_associated_scaffolds_from_list(smiles_list)
     result = []
-
-    for smiles in smiles_list:
-        # original code uses ring_cutoff=30, hence why using it here
-        scaf_res = get_scaffolds_single_mol(smiles, name="", ring_cutoff=30)
-        if scaf_res == {}:
-            # ignore invalid SMILES
-            continue
-
-        scaffolds = scaf_res["scaffolds"]
-
-        # get highest-scoring scaf
+    for smiles in associated_scaffolds.keys():
+        scaffolds = associated_scaffolds[smiles]
         max_scaf_score = -1
         max_scaf = ""
         for scafsmi in scaffolds:
@@ -153,10 +121,9 @@ def get_high_scores():
             if len(scaf_info) >= 1:  # if scaffold in DB
                 scaf_info = dict(scaf_info[0])
                 scaf_pscore = scaf_info["pscore"]
-                if scaf_pscore > max_scaf_score:
+                if scaf_pscore is not None and scaf_pscore > max_scaf_score:
                     max_scaf_score = scaf_pscore
                     max_scaf = scafsmi
-
         if max_scaf_score == -1:
             max_scaf_score = None
             max_scaf = None
@@ -165,3 +132,26 @@ def get_high_scores():
         )
 
     return jsonify(result)
+
+
+def get_full_report():
+    """
+    For each provided compound:
+    - Scaffolds
+        - scafsmi
+        - in_db (if scaf in DB)
+        - pscore
+        - prank
+        - in_drug
+        - associated CIDs (from PubChem)
+    - Associated compounds
+        - CID
+        - Isomeric SMILES
+        - Associated SIDs (from PubChem)
+    - Associated substances
+        - SID
+        - Associated AIDs
+    - Associated assays
+        - AID
+    """
+    return
