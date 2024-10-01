@@ -132,26 +132,3 @@ def get_high_scores():
         )
 
     return jsonify(result)
-
-
-def get_full_report():
-    """
-    For each provided compound:
-    - Scaffolds
-        - scafsmi
-        - in_db (if scaf in DB)
-        - pscore
-        - prank
-        - in_drug
-        - associated CIDs (from PubChem)
-    - Associated compounds
-        - CID
-        - Isomeric SMILES
-        - Associated SIDs (from PubChem)
-    - Associated substances
-        - SID
-        - Associated AIDs
-    - Associated assays
-        - AID
-    """
-    return
