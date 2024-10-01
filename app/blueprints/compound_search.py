@@ -41,10 +41,6 @@ def _get_associated_scaffolds_from_list(smiles_list: list[str]) -> dict[str, lis
             if len(scaf_info) < 1:
                 scaf_info = {
                     "scafsmi": scafsmi,
-                    "id": None,
-                    "pscore": None,
-                    "prank": None,
-                    "in_drug": None,
                     "in_db": False,
                 }
             else:

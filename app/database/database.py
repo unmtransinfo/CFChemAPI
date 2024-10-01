@@ -56,7 +56,7 @@ class BadappleDB:
             return abort(400, "Invalid SMILES provided")
         # TODO: change "LIMIT 1" (or handle the handful of duplicate scafsmis in some way)
         query = sql.SQL(
-            "SELECT scafsmi,id,pscore,prank,in_drug from scaffold where scafsmi={scafsmi} LIMIT 1"
+            "SELECT * from scaffold where scafsmi={scafsmi} LIMIT 1"
         ).format(scafsmi=sql.Literal(scafsmi))
         result = BadappleDB.select(query)
         return result
