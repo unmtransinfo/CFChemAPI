@@ -13,11 +13,16 @@ from utils.scaffold_utils import get_scaffolds_single_mol
 compound_search = Blueprint("compound_search", __name__, url_prefix="/compound_search")
 
 
-def _get_smiles_list(request):
+def _get_smiles_list(request, limit: int = 1000):
     smiles_list = request.args.get("SMILES", type=str)
     if not smiles_list:
         return abort(400, "No SMILES provided")
     smiles_list = smiles_list.split(",")
+    if len(smiles_list) > limit:
+        return abort(
+            400,
+            f"Provided list of SMILES exceeded limit of {limit}. Please provide <= {limit} SMILES at a time.",
+        )
     return smiles_list
 
 

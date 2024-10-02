@@ -10,6 +10,7 @@ import psycopg2.extras
 from flask import abort, current_app
 from psycopg2 import sql
 from utils.smiles_utils import get_canon_smiles
+from utils.type_check import int_check
 
 
 class BadappleDB:
@@ -39,10 +40,7 @@ class BadappleDB:
         return res
 
     def index_compound(cid: int):
-        try:
-            cid = int(cid)
-        except:
-            return abort(400, "Invalid cid provided")
+        cid = int_check(cid, "CID")
         query = sql.SQL("SELECT isosmi from compound where cid={cid} LIMIT 1").format(
             cid=sql.Literal(cid)
         )
@@ -58,5 +56,13 @@ class BadappleDB:
         query = sql.SQL(
             "SELECT * from scaffold where scafsmi={scafsmi} LIMIT 1"
         ).format(scafsmi=sql.Literal(scafsmi))
+        result = BadappleDB.select(query)
+        return result
+
+    def get_associated_compounds(scafid: int):
+        scafid = int_check(scafid, "scafid")
+        query = sql.SQL(
+            "select * from compound where cid IN (select cid from scaf2cpd where scafid={scafid})"
+        ).format(scafid=sql.Literal(scafid))
         result = BadappleDB.select(query)
         return result

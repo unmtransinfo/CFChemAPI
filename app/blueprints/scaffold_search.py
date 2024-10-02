@@ -12,31 +12,30 @@ from flask import Blueprint, jsonify, request
 scaffold_search = Blueprint("scaffold_search", __name__, url_prefix="/scaffold_search")
 
 
-@scaffold_search.route("/get_scaffold_info", methods=["GET"])
+@scaffold_search.route("/get_associated_compounds", methods=["GET"])
 @swag_from(
     {
         "parameters": [
             {
-                "name": "SMILES",
+                "name": "scafid",
                 "in": "query",
-                "type": "string",
+                "type": "integer",
                 "required": True,
-                "description": "SMILES of scaffold",
+                "description": "ID of scaffold.",
             },
         ],
         "responses": {
             200: {
-                "description": "A json object with the scaffold's canonicalized SMILES (from DB), pscore, prank, and in_drug info. Nothing if scaffold not in DB"
+                "description": "List of PubChem compounds associated with the scaffold, including statistics."
             },
-            400: {"description": "Malformed request error (likely invalid SMILES)"},
+            400: {"description": "Malformed request error"},
         },
     }
 )
-def get_scaffold_info():
+def get_associated_compounds():
     """
-    Return information about a given scaffold from the DB.
+    Return all PubChem compounds in the DB known to be associated with the given scaffold ID.
     """
-    scaf_smiles = request.args.get("SMILES", type=str)
-    # canonicalize given SMILES using RDKit
-    result = BadappleDB.search_scaffold(scaf_smiles)
+    scafid = request.args.get("scafid", type=int)
+    result = BadappleDB.get_associated_compounds(scafid)
     return jsonify(result)
