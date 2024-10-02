@@ -116,20 +116,20 @@ def get_high_scores():
     for smiles in associated_scaffolds.keys():
         scaffolds = associated_scaffolds[smiles]
         max_scaf_score = -1
-        max_scaf = ""
-        for scafsmi in scaffolds:
-            scaf_info = BadappleDB.search_scaffold(scafsmi)
-            if len(scaf_info) >= 1:  # if scaffold in DB
-                scaf_info = dict(scaf_info[0])
+        max_scaf_info = {}
+        for scaf_info in scaffolds:
+            if scaf_info["in_db"]:
                 scaf_pscore = scaf_info["pscore"]
                 if scaf_pscore is not None and scaf_pscore > max_scaf_score:
                     max_scaf_score = scaf_pscore
-                    max_scaf = scafsmi
+                    max_scaf_info = scaf_info
         if max_scaf_score == -1:
             max_scaf_score = None
-            max_scaf = None
         result.append(
-            {"molecule_smiles": smiles, "scaf": max_scaf, "pscore": max_scaf_score}
+            {
+                "molecule_smiles": smiles,
+                "highest_scoring_scaf": max_scaf_info,
+            }
         )
 
     return jsonify(result)
