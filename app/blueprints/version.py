@@ -4,6 +4,7 @@
 from blueprints.compound_search import compound_search
 from blueprints.hiers import hiers
 from blueprints.scaffold_search import scaffold_search
+from blueprints.substance_search import substance_search
 from flasgger import swag_from
 from flask import Blueprint, current_app
 
@@ -35,3 +36,4 @@ def hello():
 version.register_blueprint(hiers)
 version.register_blueprint(compound_search)
 version.register_blueprint(scaffold_search)
+version.register_blueprint(substance_search)

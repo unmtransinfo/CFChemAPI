@@ -74,3 +74,11 @@ class BadappleDB:
         )
         result = BadappleDB.select(query)
         return result
+
+    def get_assay_outcomes(sid: int):
+        sid = int_check(sid, "SID")
+        query = sql.SQL("SELECT aid,outcome FROM activity WHERE sid={sid}").format(
+            sid=sql.Literal(sid)
+        )
+        result = BadappleDB.select(query)
+        return result
