@@ -66,3 +66,11 @@ class BadappleDB:
         ).format(scafid=sql.Literal(scafid))
         result = BadappleDB.select(query)
         return result
+
+    def get_associated_sids(cid_list: list[int]):
+        formatted_cid_list = sql.SQL(", ").join(map(sql.Literal, cid_list))
+        query = sql.SQL("SELECT * FROM sub2cpd WHERE cid IN ({cid_list})").format(
+            cid_list=formatted_cid_list
+        )
+        result = BadappleDB.select(query)
+        return result

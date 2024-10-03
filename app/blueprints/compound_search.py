@@ -5,25 +5,15 @@ Description:
 Blueprint for searching Badapple DB for data from compound inputs.
 """
 
+from collections import defaultdict
+
 from database.database import BadappleDB
 from flasgger import swag_from
-from flask import Blueprint, abort, jsonify, request
+from flask import Blueprint, jsonify, request
+from utils.request_processing import process_integer_list_input, process_list_input
 from utils.scaffold_utils import get_scaffolds_single_mol
 
 compound_search = Blueprint("compound_search", __name__, url_prefix="/compound_search")
-
-
-def _get_smiles_list(request, limit: int = 1000):
-    smiles_list = request.args.get("SMILES", type=str)
-    if not smiles_list:
-        return abort(400, "No SMILES provided")
-    smiles_list = smiles_list.split(",")
-    if len(smiles_list) > limit:
-        return abort(
-            400,
-            f"Provided list of SMILES exceeded limit of {limit}. Please provide <= {limit} SMILES at a time.",
-        )
-    return smiles_list
 
 
 def _get_associated_scaffolds_from_list(smiles_list: list[str]) -> dict[str, list]:
@@ -81,7 +71,7 @@ def get_associated_scaffolds():
     """
     Return associated scaffolds + info on each.
     """
-    smiles_list = _get_smiles_list(request)
+    smiles_list = process_list_input(request, "SMILES", 1000)
     result = _get_associated_scaffolds_from_list(smiles_list)
     return jsonify(result)
 
@@ -110,7 +100,7 @@ def get_high_scores():
     """
     Return highest-scoring scaffold for each molecule.
     """
-    smiles_list = _get_smiles_list(request)
+    smiles_list = process_list_input(request, "SMILES", 1000)
     associated_scaffolds = _get_associated_scaffolds_from_list(smiles_list)
     result = []
     for smiles in associated_scaffolds.keys():
@@ -133,3 +123,41 @@ def get_high_scores():
         )
 
     return jsonify(result)
+
+
+@compound_search.route("/get_associated_substance_ids", methods=["GET"])
+@swag_from(
+    {
+        "parameters": [
+            {
+                "name": "CIDs",
+                "in": "query",
+                "type": "string",
+                "required": True,
+                "description": "List of compound PubChem CIDs, comma-separated.",
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "A json object containing each CID mapped to 1 or more SIDs associated with it in the DB. CIDs not in the DB will have 0 associated SIDs."
+            },
+            400: {"description": "Malformed request error"},
+        },
+    }
+)
+def get_associated_substance_ids():
+    """
+    Get SubstanceIDs (SIDs) associated with the input CompoundIDs (CIDs) in the DB.
+    """
+    cid_list = process_integer_list_input(request, "CIDs", 1000)
+    result = BadappleDB.get_associated_sids(cid_list)
+
+    # combine dicts with shared CID
+    combined_result = defaultdict(list)
+    for item in result:
+        combined_result[item["cid"]].append(item["sid"])
+
+    formatted_result = [
+        {"CID": cid, "SIDs": sids} for cid, sids in combined_result.items()
+    ]
+    return jsonify(formatted_result)
