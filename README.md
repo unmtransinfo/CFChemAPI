@@ -11,6 +11,7 @@ API for Badapple2. Currently in development (do not use for production!)
 * copy `.env.example` to `.env`
 * edit the `.env` credentials as needed
 * run `docker-compose -f compose-development.yml up --build`
+    * Note: Depending on your version of docker, you may instead want to use: `docker compose -f compose-development.yml up --build`
 * The API should now be accessible from `localhost:8000`
 
 ## Documentation
