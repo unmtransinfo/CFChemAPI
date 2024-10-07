@@ -9,7 +9,7 @@ from collections import defaultdict
 
 from database.database import BadappleDB
 from flasgger import swag_from
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, abort, jsonify, request
 from utils.request_processing import process_integer_list_input, process_list_input
 from utils.scaffold_utils import get_scaffolds_single_mol
 
@@ -69,10 +69,66 @@ def _get_associated_scaffolds_from_list(smiles_list: list[str]) -> dict[str, lis
 )
 def get_associated_scaffolds():
     """
-    Return associated scaffolds + info on each.
+    Return associated scaffolds + info on each, dictionary from input SMILES->scaffolds.
     """
     smiles_list = process_list_input(request, "SMILES", 1000)
     result = _get_associated_scaffolds_from_list(smiles_list)
+    return jsonify(result)
+
+
+@compound_search.route("/get_associated_scaffolds_ordered", methods=["GET"])
+@swag_from(
+    {
+        "parameters": [
+            {
+                "name": "SMILES",
+                "in": "query",
+                "type": "string",
+                "required": True,
+                "description": "List of compound SMILES, comma-separated. ",
+            },
+            {
+                "name": "Names",
+                "in": "query",
+                "type": "string",
+                "required": False,
+                "description": "List of compound names, comma-separated.",
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "A json object with all compounds and their associated scaffolds. The data will be in the same order as the given list of SMILES/Names."
+            },
+            400: {"description": "Malformed request error"},
+        },
+    }
+)
+def get_associated_scaffolds_ordered():
+    """
+    Return associated scaffolds + info on each, list in order of input.
+    """
+    smiles_list = process_list_input(request, "SMILES", 1000)
+    name_list = smiles_list
+    names_given = "Names" in request.args
+    if names_given:
+        name_list = process_list_input(request, "Names", 1000)
+        if len(smiles_list) != len(name_list):
+            return abort(
+                400,
+                f"Length of 'SMILES' and 'Names' list expected to match, but got lengths: {len(smiles_list)} and {len(name_list)}",
+            )
+    smiles2scaffolds = _get_associated_scaffolds_from_list(smiles_list)
+    # order output
+    # one could optimize/re-write _get_associated_scaffolds_from_list for this API call, but not expecting to deal with large inputs
+    result = []
+    for smiles, name in zip(smiles_list, name_list):
+        d = {"molecule_smiles": smiles, "name": name}
+        if smiles in smiles2scaffolds:
+            d["scaffolds"] = smiles2scaffolds[smiles]
+        else:
+            d["scaffolds"] = None
+            d["error_msg"] = "Invalid SMILES, please check input"
+        result.append(d)
     return jsonify(result)
 
 
