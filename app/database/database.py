@@ -75,6 +75,24 @@ class BadappleDB:
         result = BadappleDB.select(query)
         return result
 
+    def get_associated_assay_ids(scafid: int):
+        scafid = int_check(scafid, "scafid")
+        query = sql.SQL(
+            """SELECT DISTINCT aid 
+FROM activity 
+WHERE sid IN (
+    SELECT sid 
+    FROM sub2cpd 
+    WHERE cid IN (
+        SELECT cid 
+        FROM scaf2cpd 
+        WHERE scafid = {scafid}
+    )
+) ORDER BY aid;"""
+        ).format(scafid=sql.Literal(scafid))
+        result = BadappleDB.select(query)
+        return result
+
     def get_assay_outcomes(sid: int):
         sid = int_check(sid, "SID")
         query = sql.SQL("SELECT aid,outcome FROM activity WHERE sid={sid}").format(

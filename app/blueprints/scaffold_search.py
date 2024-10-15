@@ -39,3 +39,33 @@ def get_associated_compounds():
     scafid = request.args.get("scafid", type=int)
     result = BadappleDB.get_associated_compounds(scafid)
     return jsonify(result)
+
+
+@scaffold_search.route("/get_associated_assay_ids", methods=["GET"])
+@swag_from(
+    {
+        "parameters": [
+            {
+                "name": "scafid",
+                "in": "query",
+                "type": "integer",
+                "required": True,
+                "description": "ID of scaffold.",
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "List of PubChem assay IDs associated with the scaffold. Does not include outcomes."
+            },
+            400: {"description": "Malformed request error"},
+        },
+    }
+)
+def get_associated_assay_ids():
+    """
+    Return all PubChem assay IDs in the DB known to be associated with the given scaffold ID.
+    """
+    scafid = request.args.get("scafid", type=int)
+    result = BadappleDB.get_associated_assay_ids(scafid)
+    result = [d["aid"] for d in result]
+    return jsonify(result)
