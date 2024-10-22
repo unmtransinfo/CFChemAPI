@@ -19,5 +19,5 @@ The `compose-production.yml` file will spin up the Badapple2 website (DB, API, a
 ## Setup (Production on Chiltepin)
 1. Copy `production_env.example` to `.env`
 2. Fill in/edit the `.env` credentials as needed
-3. Run `docker-compose -f compose-production.yml up`
+3. Run `docker-compose -f compose-production.yml up --build`
 
