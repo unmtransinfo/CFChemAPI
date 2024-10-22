@@ -41,7 +41,7 @@ http {
     }
 
     location / {
-      proxy_pass http://badapple_api:${APP_PORT}/;
+      proxy_pass http://badapple_api:$${APP_PORT}/;
       #return 500;
       proxy_set_header HOST $host;
       proxy_set_header X-Query-String $query_string;
