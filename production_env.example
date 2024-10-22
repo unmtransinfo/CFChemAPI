@@ -1,7 +1,8 @@
 TZ=America/Denver
+# all DB_* variables must match what is in the database Dockerfile!
 DB_NAME=badapple_classic
-DB_USER=
-DB_PASSWORD=
+DB_USER=robin
+DB_PASSWORD=katchow
 DB_PORT=5442
 BADAPPLE_NGINX_SSL_PORT=
 BADAPPLE_NGINX_HTTP_PORT=
