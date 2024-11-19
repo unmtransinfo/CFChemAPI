@@ -11,7 +11,7 @@ services:
       - .env
   cfchem_ui:
     build:
-      context: https://github.com/Jonathan-Wahl/CFChemUI.git
+      context: https://github.com/Jonathan-Wahl/CFChemUI.git#main
     environment:
       - NODE_OPTIONS=--openssl-legacy-provider
     command: su -c "npm i && npm run build"
