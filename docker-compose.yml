@@ -1,25 +1,24 @@
-secrets:
-  mysql_password:
-    environment: DB_PASSWORD
 volumes:
   nginx:
   static_files_cfchem:
-  cert:
 services:
   cfchem_api:
     build:
       context: ./app
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql
+    env_file:
+      - .env
   cfchem_ui:
     build:
-      context: https://github.com/Jonathan-Wahl/CFChemUI.git#TINX-35
+      context: https://github.com/Jonathan-Wahl/CFChemUI.git
     environment:
       - NODE_OPTIONS=--openssl-legacy-provider
-    command: npx vite build
+    command: su -c "npm i && npm run build"
     volumes:
       - static_files_cfchem:/app/dist/
+    env_file:
+      - .env
   nginx:
     image: nginx:1
     volumes:
@@ -33,28 +32,6 @@ services:
       cfchem_api:
         condition: service_started
       cfchem_ui:
-        condition: service_completed_successfully
-      # certbot:
-      #   condition: service_completed_successfully
+        condition: service_started
   mysql:
-    image: mysql:8
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      - MYSQL_USER=${DB_USER:-db_user}
-      - MYSQL_PASSWORD=${DB_PASSWORD:-db_password}
-      - MYSQL_DATABASE=${DB_DATABASE:-db_database}
-      - MYSQL_RANDOM_ROOT_PASSWORD=true
-    secrets:
-      - mysql_password
-    volumes:
-      - ${DATABASE_VOLUME_PATH:-./db}:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 10s
-      retries: 20
-  # certbot:
-  #   image: neilpang/acme.sh
-  #   volumes:
-  #     - cert:/out
-  #   command: --issue -d example.com  --dns dns_cf
-
+    image: unmtransinfo/cfchemdb_db
