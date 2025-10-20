@@ -1,20 +1,23 @@
-from flask import Flask, Blueprint, jsonify
-from database.database import database
-from blueprints.version import version
+from blueprints.version import register_routes
+from dotenv import load_dotenv
 from flasgger import Swagger
+from flask import Flask
 from flask_cors import CORS
 
-from dotenv import load_dotenv
 
-app = Flask(__name__)
-# Load config
-load_dotenv('.env')
-app.config.from_pyfile('config.py')
-# Register routes
-app.register_blueprint(version)
-CORS(app)
-swagger = Swagger(app)
+def create_app():
+    app = Flask(__name__)
+    # Load config
+    load_dotenv(".env")
+    app.config.from_pyfile("config.py")
+    # Register routes
+    VERSION_URL_PREFIX = f"/api/v1"
+    CORS(app)
+    swagger = Swagger(app)
+    register_routes(app, VERSION_URL_PREFIX)
+    return app
 
-# Main loop
-if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=app.config.get('APP_PORT'))
+
+app = create_app()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=app.config.get("APP_PORT"))
