@@ -4,7 +4,6 @@ API for fetching data from [CFDE Chemical Database (CFChemDb)](https://github.co
 
 ## TODO
 
-- (For production) add internal network in compose file
 - Clean up API Spec
 
 ## Requirements
