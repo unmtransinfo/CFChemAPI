@@ -4,6 +4,7 @@ API for fetching data from [CFDE Chemical Database (CFChemDb)](https://github.co
 
 ## TODO
 
+- Update app.py to fix URL
 - Clean up API Spec
 
 ## Requirements
