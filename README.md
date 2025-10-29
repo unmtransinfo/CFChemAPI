@@ -2,6 +2,11 @@
 
 API for fetching data from [CFDE Chemical Database (CFChemDb)](https://github.com/unmtransinfo/CFChemDb).
 
+## TODO
+
+- (For production) add internal network in compose file
+- Clean up API Spec
+
 ## Requirements
 
 - Docker
@@ -11,9 +16,27 @@ API for fetching data from [CFDE Chemical Database (CFChemDb)](https://github.co
 
 1. Copy `app/.env.example` to `app/.env`
 2. Edit the `app/.env` credentials to point to the `cfchem` database
-3. Run `docker-compose -f compose-development.yml up --build`
+3. Run `docker compose -f compose-development.yml up --build`
 
 The API should now be accessible from `localhost:8000`
+
+### Development Notes
+
+#### Upgrading Dependencies
+
+If one finds they need to update dependencies (`requirements.txt`), the following steps can be followed:
+
+1. If a new package is required, add it to `requirements.in`
+2. Setup and activate a Python (v3.14) virtual environment. For example, with conda use:
+   ```
+   conda create -n cfchem-api python=3.14 && conda activate cfchem-api
+   ```
+3. Install pip-tools: `pip install pip-tools`
+4. Compile new requirements: `pip-compile --upgrade`
+   - Make sure you are in the `app/` directory: `cd app/`
+5. (Optional) Test the update locally in your environment: `pip-sync`
+
+_Note_: If you need to update the Python version, make sure to adjust the steps above accordingly and to update the Python image in `Dockerfile`.
 
 ## Documentation
 
