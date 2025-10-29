@@ -1,13 +1,13 @@
 # blueprints/search.py
 
-from flask import Flask, Blueprint, request, abort, current_app
 from database.database import database
-import psycopg2.extras
-from psycopg2.extensions import AsIs
-search = Blueprint('search', __name__, url_prefix="/search")
+from flask import Blueprint, request
+
+search = Blueprint("search", __name__, url_prefix="/search")
+from psycopg2 import sql
 
 
-@search.route('/')
+@search.route("/")
 def index():
     """Endpoint returning lincs objects based on search parameter (query)
     This endpoint allows you to return a list of Lincs objects.
@@ -35,22 +35,24 @@ def index():
     """
 
     # Limit the query size
-    rawInput = request.args.get('query', type=str) or ''
-    limit = request.args.get('limit', type=int) or 10
-    offset = request.args.get('offset', type=int) or 0
+    raw_user_input = request.args.get("query", type=str) or ""
+    limit = request.args.get("limit", type=int) or 10
+    offset = request.args.get("offset", type=int) or 0
     # Build the query
-    input = '%' + rawInput + '%'
-    searchCollection = database.select("""
-    SELECT * FROM lincs
-    WHERE moa LIKE %(input)s
-    OR cansmi LIKE %(input)s
-    OR inchi_key LIKE %(input)s
-    OR lcs_id LIKE %(input)s
-    OR pert_name LIKE %(input)s
-    OR smiles LIKE %(input)s
-    OR target LIKE %(input)s
-    LIMIT %(limit)s
-    OFFSET %(offset)s
-    """, {'input': input, 'rawinput': rawInput, 'limit': limit, 'offset': offset})
-    
+    user_input = "%" + raw_user_input + "%"
+    columns = ["moa", "cansmi", "inchi_key", "lcs_id", "pert_name", "smiles", "target"]
+    where_clauses = [
+        sql.SQL("{} LIKE %s").format(sql.Identifier(col)) for col in columns
+    ]
+    query = sql.SQL(
+        """
+        SELECT * FROM {table}
+        WHERE {where_clause}
+        LIMIT %s OFFSET %s
+    """
+    ).format(
+        table=sql.Identifier("lincs"), where_clause=sql.SQL(" OR ").join(where_clauses)
+    )
+    query_vars = [user_input] * len(columns) + [limit, offset]
+    searchCollection = database.select(query, query_vars)
     return searchCollection
