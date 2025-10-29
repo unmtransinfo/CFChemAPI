@@ -1,7 +1,6 @@
-volumes:
-  nginx:
-  static_files_cfchem:
 services:
+  cfchem_db: # note: having the DB as part of the compose file is not strictly necessary if we already have the DB installed on our system - but since the cfchemdb is so small (<1GB) it's not a major concern
+    image: unmtransinfo/cfchemdb_db
   cfchem_api:
     build:
       context: ./app
@@ -9,16 +8,20 @@ services:
       - cfchem_db
     env_file:
       - .env
+    networks:
+      - cfchem_net
   cfchem_ui:
     build:
       context: https://github.com/unmtransinfo/CFChemUI.git#main
     environment:
       - NODE_OPTIONS=--openssl-legacy-provider
-    command: su -c "npm i && npm run build"
+    command: npx vite build
     volumes:
       - static_files_cfchem:/app/dist/
     env_file:
       - .env
+    networks:
+      - cfchem_net
   nginx:
     image: nginx:1
     volumes:
@@ -33,5 +36,12 @@ services:
         condition: service_started
       cfchem_ui:
         condition: service_started
-  cfchem_db: # note: having the DB as part of the compose file is not strictly necessary if we already have the DB installed on our system - but since the cfchemdb is so small (<1GB) it's not a major concern
-    image: unmtransinfo/cfchemdb_db
+    networks:
+      - cfchem_net
+
+volumes:
+  nginx:
+  static_files_cfchem:
+
+networks:
+  cfchem_net:
