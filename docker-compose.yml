@@ -1,13 +1,17 @@
 services:
   cfchem_db: # note: having the DB as part of the compose file is not strictly necessary if we already have the DB installed on our system - but since the cfchemdb is so small (<1GB) it's not a major concern
+    restart: always
     image: unmtransinfo/cfchemdb_db
   cfchem_api:
+    restart: always
     build:
       context: ./app
     depends_on:
       - cfchem_db
     env_file:
       - .env
+    volumes:
+      - static_files_flasgger:/app/flasgger_static/
     networks:
       - cfchem_net
   cfchem_ui:
@@ -23,6 +27,7 @@ services:
     networks:
       - cfchem_net
   nginx:
+    restart: always
     image: nginx:1
     volumes:
       - static_files_cfchem:/usr/share/nginx/html/static_files_cfchem:ro
