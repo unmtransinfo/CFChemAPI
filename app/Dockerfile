@@ -3,10 +3,15 @@ FROM python:3.14
 WORKDIR /app
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir pip-tools && \
+    pip-sync --pip-args "--timeout 100" && \
+    pip uninstall -y pip-tools
+
 
 COPY . .
 
+RUN mkdir -p flasgger_static && \
+    cp -r /usr/local/lib/python3.14/site-packages/flasgger/ui3/static/* flasgger_static
 
 # ENV vars can be overridden by docker compose / .env file
 ENV APP_PORT=8000
