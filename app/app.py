@@ -12,12 +12,11 @@ def _load_api_spec() -> dict:
     return api_spec
 
 
-def _get_updated_paths(paths_dict: dict, path_prefix: str, in_production: bool):
+def _get_updated_paths(paths_dict: dict, path_prefix: str):
     updated_paths = {}
     for path in paths_dict:
-        if not (in_production):
-            new_path = path_prefix + path
-            updated_paths[new_path] = paths_dict[path]
+        new_path = path_prefix + path
+        updated_paths[new_path] = paths_dict[path]
     return updated_paths
 
 
@@ -61,7 +60,7 @@ def create_app():
         f"/{URL_PREFIX}{VERSION_URL_PREFIX}" if IN_PROD else VERSION_URL_PREFIX
     )
     swagger_template["paths"] = _get_updated_paths(
-        swagger_template["paths"], path_prefix, IN_PROD
+        swagger_template["paths"], path_prefix
     )
 
     # setup swagger and register routes
