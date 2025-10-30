@@ -8,14 +8,14 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
     healthcheck:
-    test:
-      [
-        "CMD-SHELL",
-        "PGUSER=${DB_USER} PGPASSWORD=${DB_PASSWORD} pg_isready -d ${DB_DATABASE} -p ${DB_PORT} -h localhost"
-      ]
-    interval: 10s
-    timeout: 5s
-    retries: 5
+      test:
+        [
+          "CMD-SHELL",
+          "PGUSER=${DB_USER} PGPASSWORD=${DB_PASSWORD} pg_isready -d ${DB_DATABASE} -p ${DB_PORT} -h localhost"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   cfchem_api:
     restart: always
     build:
