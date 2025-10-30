@@ -26,6 +26,7 @@ services:
     image: nginx:1
     volumes:
       - static_files_cfchem:/usr/share/nginx/html/static_files_cfchem:ro
+      - static_files_flasgger:/usr/share/nginx/html/static_files_flasgger:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - nginx:/etc/nginx #used for nginx configuration scanning with yandex/gixy
     ports:
@@ -42,6 +43,7 @@ services:
 volumes:
   nginx:
   static_files_cfchem:
+  static_files_flasgger:
 
 networks:
   cfchem_net:
