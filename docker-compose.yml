@@ -2,6 +2,14 @@ services:
   cfchem_db: # note: having the DB as part of the compose file is not strictly necessary if we already have the DB installed on our system - but since the cfchemdb is so small (<1GB) it's not a major concern
     restart: always
     image: unmtransinfo/cfchemdb_db
+    environment:
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_PORT=${DB_PORT}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE} -p ${DB_PORT}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   cfchem_api:
     restart: always
     build:
