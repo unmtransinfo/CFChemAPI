@@ -46,6 +46,7 @@ class database:
 
             where = "mol_id = %d" % (mol_num)
         # Limit the query size
+        # TODO: set range for limit/offset
         limit = request.args.get("limit", type=int) or 10
         offset = request.args.get("offset", type=int) or 0
         # Build the query

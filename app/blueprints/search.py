@@ -9,31 +9,6 @@ from psycopg2 import sql
 
 @search.route("/")
 def index():
-    """Endpoint returning lincs objects based on search parameter (query)
-    This endpoint allows you to return a list of Lincs objects.
-    ---
-    parameters:
-      - name: query
-        in: query
-        type: string
-        required: false
-      - name: limit
-        in: query
-        type: int
-        default: 10
-        required: false
-      - name: offset
-        in: query
-        type: int
-        default: 0
-        required: false
-    responses:
-      200:
-        description: A list of Lincs objects
-      400:
-        description: Malformed request error
-    """
-
     # Limit the query size
     raw_user_input = request.args.get("query", type=str) or ""
     limit = request.args.get("limit", type=int) or 10

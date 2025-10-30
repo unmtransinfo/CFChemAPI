@@ -1,0 +1,115 @@
+info:
+  title: API for CFChemDB
+  description: |
+    API which allows for programmatic access to CFChemDB (https://github.com/unmtransinfo/CFChemDb).
+
+    Please report any issues to https://github.com/unmtransinfo/CFChemAPI/issues
+  version: 1
+components:
+  parameters:
+    Limit:
+      name: limit
+      type: integer
+      in: query
+      description: Maximum number of entries to return
+      minimum: 0
+      default: 10
+      required: false
+    MolID:
+      name: mol_id
+      type: integer
+      in: path
+      description: CFChemDB mol_id
+      required: false
+    Offset:
+      name: offset
+      type: integer
+      in: query
+      description: Offset
+      minimum: 0
+      default: 0
+      required: false
+    Query:
+      name: query
+      type: string
+      in: query
+      required: false
+  responses:
+    ResponseCode400:
+      description: Malformed request error
+paths:
+  /drugcentral/:
+    get:
+      tags:
+        - DrugCentral
+      summary: Endpoint returning a list of Drugcentral objects
+      description: Endpoint returning a list of Drugcentral objects
+      parameters:
+        - $ref: "#/components/parameters/MolID"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        200:
+          description: A list of Drugcentral objects
+        400:
+          $ref: "#/components/responses/ResponseCode400"
+  /drugcentral/<mol_id>:
+    get:
+      tags:
+        - DrugCentral
+      summary: Endpoint returning a list of Drugcentral objects
+      description: Endpoint returning a list of Drugcentral objects
+      parameters:
+        - $ref: "#/components/parameters/MolID"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        200:
+          description: A list of Drugcentral objects
+        400:
+          $ref: "#/components/responses/ResponseCode400"
+  /lincs/:
+    get:
+      tags:
+        - Lincs
+      summary: Endpoint returning a list of Lincs objects
+      description: Endpoint returning a list of Lincs objects
+      parameters:
+        - $ref: "#/components/parameters/MolID"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        200:
+          description: A list of Lincs objects
+        400:
+          $ref: "#/components/responses/ResponseCode400"
+  /lincs/<mol_id>:
+    get:
+      tags:
+        - Lincs
+      summary: Endpoint returning a list of Lincs objects
+      description: Endpoint returning a list of Lincs objects
+      parameters:
+        - $ref: "#/components/parameters/MolID"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        200:
+          description: A list of Lincs objects
+        400:
+          $ref: "#/components/responses/ResponseCode400"
+  /search/:
+    get:
+      tags:
+        - Lincs
+      summary: Endpoint returning lincs objects based on search parameter (query). This endpoint allows you to return a list of Lincs objects.
+      description: Endpoint returning lincs objects based on search parameter (query). This endpoint allows you to return a list of Lincs objects.
+      parameters:
+        - $ref: "#/components/parameters/Query"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        200:
+          description: A list of Lincs objects
+        400:
+          $ref: "#/components/responses/ResponseCode400"
