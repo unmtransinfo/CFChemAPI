@@ -8,6 +8,13 @@ services:
       context: ./app
     depends_on:
       - cfchem_db
+    environment:
+      - APP_PORT=${APP_PORT}
+      - DB_HOST=cfchem_db # host is docker service
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=${DB_PORT}
     env_file:
       - .env
     volumes:
