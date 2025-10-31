@@ -7,7 +7,7 @@ search = Blueprint("search", __name__, url_prefix="/search")
 from psycopg2 import sql
 
 
-@search.route("/")
+@search.route("/", methods=["GET"])
 def index():
     # Limit the query size
     raw_user_input = request.args.get("query", type=str) or ""
