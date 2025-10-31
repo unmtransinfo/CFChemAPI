@@ -16,7 +16,7 @@ API for fetching data from [CFDE Chemical Database (CFChemDb)](https://github.co
 
 1. Copy `app/.env.example` to `app/.env`
 2. Edit the `app/.env` credentials to point to the `cfchem` database
-3. Run `docker compose -f compose-development.yml up --build`
+3. Run `docker compose --env-file ./app/.env -f compose-development.yml up --build`
 
 The API should now be accessible from `localhost:8000`
 
