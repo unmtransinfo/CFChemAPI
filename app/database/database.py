@@ -3,6 +3,7 @@ import psycopg2.extras
 from flask import abort, current_app, request
 from psycopg2 import sql
 from psycopg2.extensions import AsIs
+from utils.request_processing import int_check
 
 
 class database:
@@ -45,10 +46,11 @@ class database:
                 return abort(400, "Invalid mol_id provided")
 
             where = "mol_id = %d" % (mol_num)
-        # Limit the query size
-        # TODO: set range for limit/offset
-        limit = request.args.get("limit", type=int) or 10
-        offset = request.args.get("offset", type=int) or 0
+
+        # get limit / offset - check that values make sense
+        limit = int_check(request, "limit", 0, 1000, default_val=10)
+        offset = int_check(request, "offset", 0, default_val=0)
+
         # Build the query
         query = """
         SELECT * FROM %(database)s

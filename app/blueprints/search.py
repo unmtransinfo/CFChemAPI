@@ -2,6 +2,7 @@
 
 from database.database import database
 from flask import Blueprint, request
+from utils.request_processing import int_check
 
 search = Blueprint("search", __name__, url_prefix="/search")
 from psycopg2 import sql
@@ -11,8 +12,8 @@ from psycopg2 import sql
 def index():
     # Limit the query size
     raw_user_input = request.args.get("query", type=str) or ""
-    limit = request.args.get("limit", type=int) or 10
-    offset = request.args.get("offset", type=int) or 0
+    limit = int_check(request, "limit", 0, 1000, default_val=10)
+    offset = int_check(request, "offset", 0, default_val=0)
     # Build the query
     user_input = "%" + raw_user_input + "%"
     columns = ["moa", "cansmi", "inchi_key", "lcs_id", "pert_name", "smiles", "target"]
