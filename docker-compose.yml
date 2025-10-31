@@ -1,28 +1,60 @@
-volumes:
-  nginx:
-  static_files_cfchem:
 services:
+  cfchem_db: # note: having the DB as part of the compose file is not strictly necessary if we already have the DB installed on our system - but since the cfchemdb is so small (<1GB) it's not a major concern
+    restart: always
+    image: unmtransinfo/cfchemdb_db
+    environment:
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_PORT=${DB_PORT}
+    volumes:
+      - cfchem_db_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${DB_PORT}:5432" # 127.0.0.1 to restrict to localhost
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - cfchem_net
   cfchem_api:
+    restart: always
     build:
       context: ./app
     depends_on:
-      - mysql
+      cfchem_db:
+        condition: service_healthy
+    environment:
+      - APP_PORT=${APP_PORT}
+      - DB_HOST=cfchem_db # host is docker service
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432 # cfchemdb has been hard-coded to be on 5432 - hence port mapping above
     env_file:
       - .env
+    volumes:
+      - static_files_flasgger:/app/flasgger_static/
+    networks:
+      - cfchem_net
   cfchem_ui:
     build:
       context: https://github.com/unmtransinfo/CFChemUI.git#main
     environment:
       - NODE_OPTIONS=--openssl-legacy-provider
-    command: su -c "npm i && npm run build"
+    command: npx vite build
     volumes:
       - static_files_cfchem:/app/dist/
     env_file:
       - .env
+    networks:
+      - cfchem_net
   nginx:
+    restart: always
     image: nginx:1
     volumes:
       - static_files_cfchem:/usr/share/nginx/html/static_files_cfchem:ro
+      - static_files_flasgger:/usr/share/nginx/html/static_files_flasgger:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - nginx:/etc/nginx #used for nginx configuration scanning with yandex/gixy
     ports:
@@ -33,5 +65,13 @@ services:
         condition: service_started
       cfchem_ui:
         condition: service_started
-  mysql:
-    image: unmtransinfo/cfchemdb_db
+    networks:
+      - cfchem_net
+
+volumes:
+  nginx:
+  static_files_cfchem:
+  static_files_flasgger:
+  cfchem_db_data:
+networks:
+  cfchem_net:

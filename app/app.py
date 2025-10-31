@@ -1,20 +1,75 @@
-from flask import Flask, Blueprint, jsonify
-from database.database import database
-from blueprints.version import version
-from flasgger import Swagger
+import yaml
+from blueprints.version import register_routes
+from dotenv import load_dotenv
+from flasgger import LazyJSONEncoder, Swagger
+from flask import Flask
 from flask_cors import CORS
 
-from dotenv import load_dotenv
 
-app = Flask(__name__)
-# Load config
-load_dotenv('.env')
-app.config.from_pyfile('config.py')
-# Register routes
-app.register_blueprint(version)
-CORS(app)
-swagger = Swagger(app)
+def _load_api_spec() -> dict:
+    with open("api_spec.yml", "r") as file:
+        api_spec = yaml.safe_load(file)
+    return api_spec
 
-# Main loop
-if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=app.config.get('APP_PORT'))
+
+def _get_updated_paths(paths_dict: dict, path_prefix: str):
+    updated_paths = {}
+    for path in paths_dict:
+        new_path = path_prefix + path
+        updated_paths[new_path] = paths_dict[path]
+    return updated_paths
+
+
+def create_app():
+    app = Flask(__name__)
+    app.json_encoder = LazyJSONEncoder
+
+    # load config
+    load_dotenv(".env")
+    app.config.from_pyfile("config.py")
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
+    # load swagger template
+    swagger_template = _load_api_spec()
+    VERSION = swagger_template["info"]["version"]
+    VERSION_URL_PREFIX = f"/api/v{VERSION}"
+
+    # setup swagger config
+    URL_PREFIX = app.config.get("URL_PREFIX", "")
+    IN_PROD = app.config.get("FLASK_ENV", "") == "production"
+    swagger_config = {
+        "headers": [],
+        "specs": [
+            {
+                "endpoint": "apispec_1",
+                "route": "/apidocs/apispec_1.json",
+            }
+        ],
+        "static_url_path": f"/{URL_PREFIX}/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/",
+        "ui_params": {
+            "url_prefix": (f"/{URL_PREFIX}") if IN_PROD else "",
+        },
+        "auth": {},  # no auth
+    }
+
+    # update template to include URL prefixes
+    swagger_template["swaggerUiPrefix"] = f"/{URL_PREFIX}" if IN_PROD else ""
+    path_prefix = (
+        f"/{URL_PREFIX}{VERSION_URL_PREFIX}" if IN_PROD else VERSION_URL_PREFIX
+    )
+    swagger_template["paths"] = _get_updated_paths(
+        swagger_template["paths"], path_prefix
+    )
+
+    # setup swagger and register routes
+    swagger = Swagger(app, config=swagger_config, template=swagger_template)
+    register_routes(app, VERSION_URL_PREFIX)
+    return app
+
+
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=app.config.get("APP_PORT"))
