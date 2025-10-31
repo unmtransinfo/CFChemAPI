@@ -43,74 +43,72 @@ paths:
     get:
       tags:
         - DrugCentral
-      summary: Endpoint returning a list of Drugcentral objects
-      description: Endpoint returning a list of Drugcentral objects
+      summary: Get a list of DrugCentral objects
+      description: Endpoint returning a list of DrugCentral objects
       parameters:
-        - $ref: "#/components/parameters/MolID"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
       responses:
         200:
-          description: A list of Drugcentral objects
+          description: A list of DrugCentral objects
         400:
           $ref: "#/components/responses/ResponseCode400"
-  /drugcentral/<mol_id>:
+  /drugcentral/{mol_id}:
     get:
       tags:
         - DrugCentral
-      summary: Endpoint returning a list of Drugcentral objects
-      description: Endpoint returning a list of Drugcentral objects
+      summary: Get DrugCentral entry by mol_id
+      description: Endpoint returning a list of DrugCentral objects
       parameters:
         - $ref: "#/components/parameters/MolID"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
       responses:
         200:
-          description: A list of Drugcentral objects
+          description: A list of DrugCentral objects
         400:
           $ref: "#/components/responses/ResponseCode400"
   /lincs/:
     get:
       tags:
-        - Lincs
-      summary: Endpoint returning a list of Lincs objects
-      description: Endpoint returning a list of Lincs objects
+        - LINCS
+      summary: Get a list of LINCS objects
+      description: Endpoint returning a list of LINCS objects
       parameters:
-        - $ref: "#/components/parameters/MolID"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
       responses:
         200:
-          description: A list of Lincs objects
+          description: A list of LINCS objects
         400:
           $ref: "#/components/responses/ResponseCode400"
-  /lincs/<mol_id>:
+  /lincs/{mol_id}:
     get:
       tags:
-        - Lincs
-      summary: Endpoint returning a list of Lincs objects
-      description: Endpoint returning a list of Lincs objects
+        - LINCS
+      summary: Get LINCS entry by mol_id
+      description: Endpoint returning a list of LINCS objects
       parameters:
         - $ref: "#/components/parameters/MolID"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
       responses:
         200:
-          description: A list of Lincs objects
+          description: A list of LINCS objects
         400:
           $ref: "#/components/responses/ResponseCode400"
   /search/:
     get:
       tags:
-        - Lincs
-      summary: Endpoint returning lincs objects based on search parameter (query). This endpoint allows you to return a list of Lincs objects.
-      description: Endpoint returning lincs objects based on search parameter (query). This endpoint allows you to return a list of Lincs objects.
+        - LINCS
+      summary: Get LINCS objects based on search parameter (query).
+      description: Endpoint returning LINCS objects based on search parameter (query). This endpoint allows you to return a list of LINCS objects.
       parameters:
         - $ref: "#/components/parameters/Query"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
       responses:
         200:
-          description: A list of Lincs objects
+          description: A list of LINCS objects
         400:
           $ref: "#/components/responses/ResponseCode400"
