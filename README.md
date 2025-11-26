@@ -52,3 +52,9 @@ _Note_: If you need to update the Python version, make sure to adjust the steps 
    - (If config check passed) reload apache: `sudo systemctl reload apache2`
 4. (If server was previously up): `docker-compose down`
 5. Run `docker-compose up --build -d`
+
+If you only need to update a single service (e.g., the UI) you don't need to do a full restart (with `down` + `up`). Instead, you can use this approach:
+
+1. Run `docker-compose build cfchem_ui`
+2. Then `docker-compose up cfchem_ui`
+3. (Recommended) Restart nginx: `docker-compose restart nginx`
