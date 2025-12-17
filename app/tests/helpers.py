@@ -26,3 +26,20 @@ def validate_drugcentral_keys(d: dict):
         "smiles",
     ]
     validate_keys(d, expected_keys)
+
+
+def validate_lincs_keys(d: dict):
+    """Validate keys returned from lincs endpoint"""
+    expected_keys = [
+        "cansmi",
+        "compound_aliases",
+        "inchi_key",
+        "lcs_id",
+        "moa",
+        "mol_id",
+        "pert_name",
+        "sig_count",
+        "smiles",
+        "target",
+    ]
+    validate_keys(d, expected_keys)
