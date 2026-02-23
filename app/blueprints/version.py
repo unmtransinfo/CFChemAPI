@@ -2,6 +2,7 @@
 # This is the master blueprint directory,
 # All new blueprints should be assigned here
 from blueprints.drugcentral import drugcentral
+from blueprints.health import health
 from blueprints.lincs import lincs
 from blueprints.search import search
 from flask import Blueprint
@@ -12,4 +13,5 @@ def register_routes(app, version_url_prefix: str):
     version.register_blueprint(lincs)
     version.register_blueprint(drugcentral)
     version.register_blueprint(search)
+    version.register_blueprint(health)
     app.register_blueprint(version)
