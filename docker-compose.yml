@@ -17,8 +17,7 @@ services:
       - backend_net 
   cfchem_api:
     restart: unless-stopped
-    build:
-      context: ./app
+    image: unmtransinfo/cfchem_api:latest
     depends_on:
       cfchem_db:
         condition: service_healthy
