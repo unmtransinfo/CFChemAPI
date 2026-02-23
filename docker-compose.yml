@@ -22,6 +22,12 @@ services:
     depends_on:
       cfchem_db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${APP_PORT:-8000}/api/v1/health/').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     environment:
       - APP_PORT=${APP_PORT}
       - DB_HOST=cfchem_db # host is docker service
@@ -49,7 +55,7 @@ services:
     networks:
       - frontend_net  
   nginx:
-    restart: always
+    restart: unless-stopped
     image: nginx:1
     volumes:
       - static_files_cfchem:/usr/share/nginx/html/static_files_cfchem:ro
