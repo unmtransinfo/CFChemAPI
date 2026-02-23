@@ -43,10 +43,7 @@ services:
       - backend_net
       - frontend_net 
   cfchem_ui:
-    build:
-      context: https://github.com/unmtransinfo/CFChemUI.git#main
-    environment:
-      - NODE_OPTIONS=--openssl-legacy-provider
+    image: unmtransinfo/cfchem_ui:latest
     command: npx vite build
     volumes:
       - static_files_cfchem:/app/dist/
