@@ -1,14 +1,12 @@
 services:
-  cfchem_db: # note: having the DB as part of the compose file is not strictly necessary if we already have the DB installed on our system - but since the cfchemdb is so small (<1GB) it's not a major concern
-    restart: always
+  cfchem_db: 
+    restart: unless-stopped
     image: unmtransinfo/cfchemdb_db
     environment:
       - DB_DATABASE=${DB_DATABASE}
       - DB_PORT=${DB_PORT}
     volumes:
       - cfchem_db_data:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:${DB_PORT}:5432" # 127.0.0.1 to restrict to localhost
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE}"]
       interval: 30s
@@ -16,9 +14,9 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      - cfchem_net
+      - backend_net 
   cfchem_api:
-    restart: always
+    restart: unless-stopped
     build:
       context: ./app
     depends_on:
@@ -36,7 +34,8 @@ services:
     volumes:
       - static_files_flasgger:/app/flasgger_static/
     networks:
-      - cfchem_net
+      - backend_net
+      - frontend_net 
   cfchem_ui:
     build:
       context: https://github.com/unmtransinfo/CFChemUI.git#main
@@ -48,7 +47,7 @@ services:
     env_file:
       - .env
     networks:
-      - cfchem_net
+      - frontend_net  
   nginx:
     restart: always
     image: nginx:1
@@ -66,7 +65,7 @@ services:
       cfchem_ui:
         condition: service_started
     networks:
-      - cfchem_net
+      - frontend_net  
 
 volumes:
   nginx:
@@ -74,4 +73,7 @@ volumes:
   static_files_flasgger:
   cfchem_db_data:
 networks:
-  cfchem_net:
+  backend_net:
+    driver: bridge # default
+  frontend_net:
+    driver: bridge
