@@ -1,32 +1,29 @@
 services:
-  cfchem_db: 
-    restart: unless-stopped
+  cfchem_db:
     image: unmtransinfo/cfchemdb_db
+    restart: unless-stopped
+    volumes:
+      - cfchem_db_data:/var/lib/postgresql/data
     environment:
       - DB_DATABASE=${DB_DATABASE}
       - DB_PORT=${DB_PORT}
-    volumes:
-      - cfchem_db_data:/var/lib/postgresql/data
+    networks:
+      - backend_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE}"]
+      test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE}" ]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
-    networks:
-      - backend_net 
+
   cfchem_api:
-    restart: unless-stopped
     image: unmtransinfo/cfchem_api:latest
+    restart: unless-stopped
     depends_on:
       cfchem_db:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${APP_PORT:-8000}/api/v1/health/').read()"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+    volumes:
+      - static_files_flasgger:/app/flasgger_static/
     environment:
       - APP_PORT=${APP_PORT}
       - DB_HOST=cfchem_db # host is docker service
@@ -36,44 +33,51 @@ services:
       - DB_PORT=5432 # cfchemdb has been hard-coded to be on 5432 - hence port mapping above
     env_file:
       - .env
-    volumes:
-      - static_files_flasgger:/app/flasgger_static/
     networks:
       - backend_net
-      - frontend_net 
+      - frontend_net
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${APP_PORT:-8000}/api/v1/health/').read()" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
   cfchem_ui:
     image: unmtransinfo/cfchem_ui:latest
-    command: npx vite build
     volumes:
       - static_files_cfchem:/app/dist/
     env_file:
       - .env
     networks:
-      - frontend_net  
+      - frontend_net
+    command: npx vite build
+
   nginx:
-    restart: unless-stopped
     image: nginx:1
-    volumes:
-      - static_files_cfchem:/usr/share/nginx/html/static_files_cfchem:ro
-      - static_files_flasgger:/usr/share/nginx/html/static_files_flasgger:ro
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - nginx:/etc/nginx #used for nginx configuration scanning with yandex/gixy
-    ports:
-      - ${CFCHEM_NGINX_SSL_PORT:-443}:443
-      - ${CFCHEM_NGINX_HTTP_PORT:-80}:80
+    restart: unless-stopped
     depends_on:
       cfchem_api:
         condition: service_started
       cfchem_ui:
         condition: service_started
+    ports:
+      - ${CFCHEM_NGINX_SSL_PORT:-443}:443
+      - ${CFCHEM_NGINX_HTTP_PORT:-80}:80
+    volumes:
+      - static_files_cfchem:/usr/share/nginx/html/static_files_cfchem:ro
+      - static_files_flasgger:/usr/share/nginx/html/static_files_flasgger:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx:/etc/nginx #used for nginx configuration scanning with yandex/gixy
     networks:
-      - frontend_net  
+      - frontend_net
 
 volumes:
   nginx:
   static_files_cfchem:
   static_files_flasgger:
   cfchem_db_data:
+
 networks:
   backend_net:
     driver: bridge # default
