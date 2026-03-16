@@ -9,7 +9,7 @@ services:
       - backend
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "psql -U ${DB_USER} -d ${DB_NAME} -c 'SELECT 1 FROM lincs LIMIT 1;'" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       interval: 30s
       timeout: 10s
       retries: 10
