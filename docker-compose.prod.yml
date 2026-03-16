@@ -39,6 +39,8 @@ services:
       - DB_PORT=5432 # cfchemdb has been hard-coded to be on 5432
     env_file:
       - .env
+    ports:
+      - "127.0.0.1:${APP_PORT}:${APP_PORT}"
     networks:
       - backend
     command: gunicorn --bind "0.0.0.0:${APP_PORT}" --workers ${N_WORKERS} --max-requests ${MAX_REQUESTS} --preload app:app
