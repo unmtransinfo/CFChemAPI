@@ -1,6 +1,6 @@
 name: cfchem-prod
 services:
-  cfchem_db:
+  db:
     image: unmtransinfo/cfchemdb_db
     volumes:
       - cfchem_db_data:/var/lib/postgresql/data
@@ -22,16 +22,16 @@ services:
           cpus: "4"
           memory: 8G
 
-  cfchem_api:
+  api:
     image: unmtransinfo/cfchem_api:latest
     depends_on:
-      cfchem_db:
+      db:
         condition: service_healthy
     volumes:
       - static_files_flasgger:/app/flasgger_static/
     environment:
       - APP_PORT=${APP_PORT}
-      - DB_HOST=cfchem_db # host is docker service
+      - DB_HOST=db # host is docker service
       - DB_DATABASE=${DB_DATABASE}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
@@ -53,7 +53,7 @@ services:
           cpus: "2"
           memory: 2G
 
-  cfchem_ui:
+  ui:
     image: unmtransinfo/cfchem_ui:latest
     depends_on:
       api:
