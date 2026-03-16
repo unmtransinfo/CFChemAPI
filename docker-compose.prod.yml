@@ -2,6 +2,7 @@ name: cfchem-prod
 services:
   db:
     image: unmtransinfo/cfchemdb_db
+    container_name: cfchem_db
     volumes:
       - cfchem_db_data:/var/lib/postgresql/data
     environment:
