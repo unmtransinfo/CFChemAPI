@@ -1,11 +1,12 @@
+name: cfchem-dev
 services:
   web:
     build:
       context: app
       dockerfile: Dockerfile
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
     environment:
       - APP_PORT=${APP_PORT}
     env_file:
       - ./app/.env
+    ports:
+      - "127.0.0.1:${APP_PORT}:${APP_PORT}"
