@@ -5,10 +5,6 @@ services:
     container_name: cfchem_db
     volumes:
       - cfchem_db_data:/var/lib/postgresql/data
-    environment:
-      - dbname=${DB_NAME}
-      - dbusr=${DB_USER}
-      - dbpw=${DB_PASSWORD}
     networks:
       - backend
     restart: unless-stopped
