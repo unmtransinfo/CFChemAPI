@@ -13,7 +13,7 @@ services:
       - backend
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "psql -U ${DB_USER} -d ${DB_DATABASE} -c 'SELECT 1 FROM lincs LIMIT 1;'" ]
+      test: [ "CMD-SHELL", "psql -U ${DB_USER} -d ${DB_NAME} -c 'SELECT 1 FROM lincs LIMIT 1;'" ]
       interval: 30s
       timeout: 10s
       retries: 10
@@ -33,7 +33,7 @@ services:
     environment:
       - APP_PORT=${APP_PORT}
       - DB_HOST=db # host is docker service
-      - DB_DATABASE=${DB_DATABASE}
+      - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_PORT=5432 # cfchemdb has been hard-coded to be on 5432
