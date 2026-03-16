@@ -55,12 +55,13 @@ services:
 
   cfchem_ui:
     image: unmtransinfo/cfchem_ui:latest
+    depends_on:
+      api:
+        condition: service_healthy
     volumes:
       - /var/www/cfchem:/app/dist/
     env_file:
       - .env
-    networks:
-      - frontend
     command: npx vite build
     restart: no
 
