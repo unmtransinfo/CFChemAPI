@@ -6,3 +6,6 @@ psycopg2-binary
 flasgger
 gunicorn
 pytest
+# black and pre-commit are just for formatting code
+black
+pre-commit
