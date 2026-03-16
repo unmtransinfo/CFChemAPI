@@ -20,13 +20,11 @@ def index():
     where_clauses = [
         sql.SQL("{} LIKE %s").format(sql.Identifier(col)) for col in columns
     ]
-    query = sql.SQL(
-        """
+    query = sql.SQL("""
         SELECT * FROM {table}
         WHERE {where_clause}
         LIMIT %s OFFSET %s
-    """
-    ).format(
+    """).format(
         table=sql.Identifier("lincs"), where_clause=sql.SQL(" OR ").join(where_clauses)
     )
     query_vars = [user_input] * len(columns) + [limit, offset]
