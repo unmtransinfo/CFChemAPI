@@ -6,7 +6,7 @@ services:
       - cfchem_db_data:/var/lib/postgresql/data
     environment:
       - DB_DATABASE=${DB_DATABASE}
-      - DB_PORT=${DB_PORT}
+      - DB_PORT=5432
     networks:
       - backend
     restart: unless-stopped
