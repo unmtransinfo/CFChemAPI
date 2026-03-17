@@ -1,0 +1,74 @@
+name: cfchem-prod
+services:
+  db:
+    image: unmtransinfo/cfchemdb_db
+    container_name: cfchem_db
+    volumes:
+      - cfchem_db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 8G
+
+  api:
+    image: unmtransinfo/cfchem_api:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - static_files_flasgger:/app/flasgger_static/
+    environment:
+      - APP_PORT=${APP_PORT}
+      - DB_HOST=db # host is docker service
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432 # cfchemdb has been hard-coded to be on 5432
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:${APP_PORT}:${APP_PORT}"
+    networks:
+      - backend
+    command: gunicorn --bind "0.0.0.0:${APP_PORT}" --workers ${N_WORKERS} --max-requests ${MAX_REQUESTS} --preload app:app
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${APP_PORT:-8000}/api/v1/health/').read()" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+
+  ui:
+    image: unmtransinfo/cfchem_ui:latest
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - /var/www/cfchem:/app/dist/
+    env_file:
+      - .env
+    command: npx vite build
+    restart: no
+
+networks:
+  backend:
+    driver: bridge # default
+
+volumes:
+  static_files_flasgger:
+  cfchem_db_data:
+

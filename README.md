@@ -33,28 +33,127 @@ If one finds they need to update dependencies (`requirements.txt`), the followin
 
 _Note_: If you need to update the Python version, make sure to adjust the steps above accordingly and to update the Python image in `Dockerfile`.
 
+#### Code Formatting with Pre-commit Hooks
+
+This project uses [pre-commit](https://pre-commit.com/) hooks to automatically format Python code with [Black](https://black.readthedocs.io/) before each commit. This ensures consistent code style across the project.
+
+**Setup (one-time):**
+
+1. Setup and activate a Python (v3.14) virtual environment if you haven't already:
+
+   ```bash
+   conda create -n cfchem-api python=3.14 && conda activate cfchem-api
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   pip install -r app/requirements.txt
+   ```
+
+3. Install the pre-commit hooks:
+   ```bash
+   pre-commit install
+   ```
+
+**Usage:**
+
+Once installed, the hooks will run automatically on `git commit`. If Black reformats any files, the commit will be aborted and you'll need to:
+
+1. Review the changes Black made
+2. Stage the reformatted files: `git add <files>`
+3. Commit again: `git commit`
+
+**Manual formatting:**
+
+You can also run Black manually on all files:
+
+```bash
+black .
+```
+
+Or run all pre-commit hooks manually without committing:
+
+```bash
+pre-commit run --all-files
+```
+
+**Configuration:**
+
+- Pre-commit hooks are configured in [.pre-commit-config.yaml](.pre-commit-config.yaml)
+
 ## Documentation
 
 - A full set of Swagger documentation can be found at http://localhost:8000/apidocs
 
 ## Setup (Production on Chiltepin)
 
-1. Copy [production_env.example](production_env.example) to `.env`: `cp production_env.example .env`
-2. Fill in/edit the `.env` credentials as needed
-3. Update apache2 config:
-   - Create a new file for apache2 config: `/etc/apache2/sites-available/cfchemapi.conf`
-   - Add the following line to `/etc/apache2/apache2.conf`:
-     ```
-     Include /etc/apache2/sites-available/cfchemapi.conf
-     ```
-   - Update the apache2 virtual config file: `/etc/apache2/sites-enabled/000-default.conf`
-   - Run config check: `sudo apachectl configtest`
-   - (If config check passed) reload apache: `sudo systemctl reload apache2`
-4. (If server was previously up): `docker-compose down`
-5. Run `docker-compose up --build -d`
+1. **Pull latest changes (for compose file mainly):**
 
-If you only need to update a single service (e.g., the UI) you don't need to do a full restart (with `down` + `up`). Instead, you can use this approach:
+```bash
+git pull
+```
 
-1. Run `docker-compose build cfchem_ui`
-2. Then `docker-compose up cfchem_ui`
-3. (Recommended) Restart nginx: `docker-compose restart nginx`
+2. **Copy [.env.prod.example](.env.prod.example) to `.env`**:
+
+```bash
+cp .env.prod.example .env
+```
+
+3. **Modify `.env`**
+
+4. **(If significant changes to compose file):**
+
+   ```bash
+   docker compose -f docker-compose.prod.yml down
+   ```
+
+5. **Pull latest images and run:**
+
+   ```bash
+   docker compose -f docker-compose.prod.yml pull
+   docker compose -f docker-compose.prod.yml up -d --remove-orphans
+   ```
+
+6. **Verify deployment:**
+
+   ```bash
+   docker compose -f docker-compose.prod.yml ps
+   docker compose -f docker-compose.prod.yml logs api
+   ```
+
+7. **(One-time setup) If not done so already, modify your /etc/apache2/sites-available/ files to include the following lines**
+
+```
+   # cfchem
+   ProxyPass /cfchem/api http://localhost:<APP_PORT>/api
+   ProxyPassReverse /cfchem/api http://localhost:<APP_PORT>/api
+   ProxyPass /cfchem/apidocs/ http://localhost:<APP_PORT>/apidocs/
+   ProxyPassReverse /cfchem/apidocs/ http://localhost:<APP_PORT>/apidocs/
+   ProxyPass /cfchem/flasgger_static/ http://localhost:<APP_PORT>/cfchem/flasgger_static/
+   ProxyPassReverse /cfchem/flasgger_static/ http://localhost:<APP_PORT>/cfchem/flasgger_static/
+
+   # Static directory aliases (e.g., SPA UI builds)
+   # cfchem
+   Alias /cfchem /var/www/cfchem/
+
+    <Directory /var/www/cfchem/>
+        Options -Indexes +FollowSymLinks
+        AllowOverride None
+        Require all granted
+
+        # SPA fallback: if the file/dir doesn't exist, serve index.html
+        RewriteEngine On
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule ^ index.html [L]
+   </Directory>
+```
+
+Then reload apache:
+
+```bash
+sudo apache2ctl configtest # make sure syntax ok
+sudo systemctl reload apache2
+curl -I https://chiltepin.health.unm.edu/cfchem/apidocs/ # should give HTTP/1.1 200
+```
